@@ -1,57 +1,90 @@
 import { ITask } from '@src/models/task.model';
-import orm from './MockOrm';
+import { PrismaClient } from '../../generated/prisma';
+const prisma = new PrismaClient();
 
 async function getTasksByBoardId(boardId: number): Promise<ITask[]> {
-  const db = await orm.openDb();
-  const tasks = Array.isArray(db.tasks) ? db.tasks : [];
-  return tasks.filter((task: ITask) => task.boardId === boardId);
+  const tasks = await prisma.task.findMany({ where: { boardId } });
+  return tasks.map(t => ({
+    ...t,
+    description: t.description === null ? undefined : t.description,
+    status: t.status === 'in_progress' ? 'in-progress' : t.status,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  }));
 }
 
 async function getTaskByBoardId(boardId: number, taskId: number):
-	Promise<ITask | null> {
-  const db = await orm.openDb();
-  const tasks = Array.isArray(db.tasks) ? db.tasks : [];
-  return tasks.find((task: ITask) => task.boardId === boardId && 
-		task.id === taskId) || null;
+  Promise<ITask | null> {
+  const t = await prisma.task.findFirst({ where: { boardId, id: taskId } });
+  if (!t) return null;
+  return {
+    ...t,
+    description: t.description === null ? undefined : t.description,
+    status: t.status === 'in_progress' ? 'in-progress' : t.status,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  };
 }
 
 async function createTask(boardId: number, task: ITask): Promise<ITask> {
-  const db = await orm.openDb();
-  if (!Array.isArray(db.tasks)) db.tasks = [];
-  task.id = Date.now();
-  task.boardId = boardId;
-  task.createdAt = new Date().toISOString();
-  task.updatedAt = task.createdAt;
-  db.tasks.push(task);
-  await orm.saveDb(db);
-  return task;
+  const prismaStatus = task.status === 'in-progress' ? 'in_progress' :
+    task.status;
+  console.log('task.repo.ts createTask called with task:', task);
+  const t = await prisma.task.create({
+    data: {
+      boardId,
+      title: task.title,
+      description: task.description,
+      status: prismaStatus,
+    },
+  });
+  console.log('task.repo.ts createTask result:', t);
+  return {
+    ...t,
+    description: t.description === null ? undefined : t.description,
+    status: t.status === 'in_progress' ? 'in-progress' : t.status,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  };
 }
 
-async function updateTask(boardId: number, taskId: number, taskData:
-	Partial<ITask>): Promise<ITask | null> {
-  const db = await orm.openDb();
-  const tasks = Array.isArray(db.tasks) ? db.tasks : [];
-  const task = tasks.find((t: ITask) => t.boardId === boardId &&
-		t.id === taskId);
-  if (task) {
-    Object.assign(task, taskData, { updatedAt: new Date().toISOString() });
-    await orm.saveDb(db);
-    return task;
+async function updateTask(
+  boardId: number,
+  taskId: number,
+  taskData: Partial<ITask>,
+): Promise<ITask | null> {
+  console.log('task.repo.ts updateTask called with taskId:', taskId, 'and taskData:', taskData);
+  const updateData: Partial<ITask> = { ...taskData };
+  // Remove id if present
+  delete updateData.id;
+  // Map status to Prisma enum
+  if (updateData.status === 'in-progress') updateData.status = 'in-progress';
+  const updated = await prisma.task.updateMany({
+    where: { id: taskId, boardId },
+    data: updateData as number,
+  });
+  if (updated.count > 0) {
+    const t = await prisma.task.findFirst({ where: { id: taskId, boardId } });
+    if (!t) return null;
+    console.log('task.repo.ts updateTask result:', t);
+    return {
+      ...t,
+      description: t.description === null ? undefined : t.description,
+      status: t.status === 'in_progress' ? 'in-progress' : t.status,
+      createdAt: t.createdAt.toISOString(),
+      updatedAt: t.updatedAt.toISOString(),
+    };
   }
   return null;
 }
 
 async function deleteTask(boardId: number, taskId: number): Promise<boolean> {
-  const db = await orm.openDb();
-  const tasks = Array.isArray(db.tasks) ? db.tasks : [];
-  const idx = tasks.findIndex((t: ITask) => t.boardId === boardId &&
-		t.id === taskId);
-  if (idx !== -1) {
-    tasks.splice(idx, 1);
-    await orm.saveDb(db);
-    return true;
-  }
-  return false;
+  console.log('task.repo.ts deleteTask called with taskId:', taskId);
+  const deleted = await prisma.task.deleteMany({
+    where: { id: taskId, boardId },
+  });
+  console.log('task.repo.ts deleteTask completed for taskId:', taskId);
+  return deleted.count > 0;
 }
 
 export default {

@@ -1,6 +1,6 @@
 import { IUser } from '@src/models/user.model';
-import { getRandomInt } from '@src/util/misc';
-import orm from './MockOrm';
+import { PrismaClient } from '../../generated/prisma';
+const prisma = new PrismaClient();
 
 
 // **** Functions **** //
@@ -9,70 +9,71 @@ import orm from './MockOrm';
  * Get one user.
  */
 async function getOne(email: string): Promise<IUser | null> {
-  const db = await orm.openDb();
-  for (const user of db.users) {
-    if (user.email === email) {
-      return user;
-    }
-  }
-  return null;
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return null;
+  return {
+    ...user,
+    pwdHash: user.pwdHash === null ? undefined : user.pwdHash,
+    role: user.role === 'Admin' ? 1 : 0,
+  };
 }
+// removed stray closing brace
 
 /**
  * See if a user with the given id exists.
  */
 async function persists(id: number): Promise<boolean> {
-  const db = await orm.openDb();
-  for (const user of db.users) {
-    if (user.id === id) {
-      return true;
-    }
-  }
-  return false;
+  const user = await prisma.user.findUnique({ where: { id } });
+  return !!user;
 }
 
 /**
  * Get all users.
  */
 async function getAll(): Promise<IUser[]> {
-  const db = await orm.openDb();
-  return db.users;
+  const users = await prisma.user.findMany();
+  return users.map(user => ({
+    ...user,
+    pwdHash: user.pwdHash === null ? undefined : user.pwdHash,
+    role: user.role === 'Admin' ? 1 : 0,
+  }));
 }
 
 /**
  * Add one user.
  */
 async function add(user: IUser): Promise<void> {
-  const db = await orm.openDb();
-  user.id = getRandomInt();
-  db.users.push(user);
-  return orm.saveDb(db);
+  await prisma.user.create({
+    data: {
+      // removed leftover MockOrm code
+      name: user.name,
+      email: user.email,
+      pwdHash: user.pwdHash,
+      role: (user.role as unknown) === 1 ? 'Admin' : 'Standard',
+    },
+  });
 }
 
 /**
  * Update a user.
  */
 async function update(user: IUser): Promise<void> {
-  const db = await orm.openDb();
-  for (let i = 0; i < db.users.length; i++) {
-    if (db.users[i].id === user.id) {
-      db.users[i] = user;
-      return orm.saveDb(db);
-    }
-  }
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      name: user.name,
+      email: user.email,
+      pwdHash: user.pwdHash,
+      role: (user.role as unknown) === 1 ? 'Admin' : 'Standard',
+    },
+  });
 }
 
 /**
  * Delete one user.
  */
 async function delete_(id: number): Promise<void> {
-  const db = await orm.openDb();
-  for (let i = 0; i < db.users.length; i++) {
-    if (db.users[i].id === id) {
-      db.users.splice(i, 1);
-      return orm.saveDb(db);
-    }
-  }
+  await prisma.user.delete({ where: { id } });
 }
 
 

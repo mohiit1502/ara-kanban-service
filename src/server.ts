@@ -3,6 +3,7 @@
  */
 
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import morgan from 'morgan';
 import path from 'path';
 import helmet from 'helmet';
@@ -28,6 +29,8 @@ const app = express();
 // **** Setup **** //
 
 // Basic middleware
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser(EnvVars.CookieProps.Secret));

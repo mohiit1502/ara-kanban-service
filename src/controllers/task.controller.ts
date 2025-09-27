@@ -5,6 +5,7 @@ import { ITask } from '@src/models/task.model';
 class TaskController {
   // Get all tasks for a board
   public getTasksByBoardId = async (req: Request, res: Response) => {
+    console.log('task.controller.ts getTasksByBoardId called with boardId:', req.params.boardId);
     try {
       if (req.headers.authorization !== 'Bearer testtoken') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -13,6 +14,7 @@ class TaskController {
       const tasks = await TaskRepo.getTasksByBoardId(boardId);
       return res.json({ tasks });
     } catch (err) {
+      console.error('task.controller.ts getTasksByBoardId error:', err);
       return res.status(500).json({ error: 'Internal server error', 
         details: String(err) });
     }
@@ -20,6 +22,7 @@ class TaskController {
 
   // Get single task by boardId and taskId
   public getTaskByBoardId = async (req: Request, res: Response) => {
+    console.log('task.controller.ts getTaskByBoardId called with boardId:', req.params.boardId, 'taskId:', req.params.taskId);
     try {
       if (req.headers.authorization !== 'Bearer testtoken') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -29,6 +32,7 @@ class TaskController {
       const task = await TaskRepo.getTaskByBoardId(boardId, taskId);
       return res.json({ task });
     } catch (err) {
+      console.error('task.controller.ts getTaskByBoardId error:', err);
       return res.status(500).json({ error: 'Internal server error', 
         details: String(err) });
     }
@@ -36,6 +40,7 @@ class TaskController {
 
   // Create task for a board
   public createTask = async (req: Request, res: Response) => {
+    console.log('task.controller.ts createTask called with boardId:', req.params.boardId, 'body:', req.body);
     try {
       if (req.headers.authorization !== 'Bearer testtoken') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -49,6 +54,7 @@ class TaskController {
       const task = await TaskRepo.createTask(boardId, taskData);
       return res.status(201).json({ task });
     } catch (err) {
+      console.error('task.controller.ts createTask error:', err);
       return res.status(500).json({ error: 'Internal server error', 
         details: String(err) });
     }
@@ -56,6 +62,7 @@ class TaskController {
 
   // Update task for a board
   public updateTask = async (req: Request, res: Response) => {
+    console.log('task.controller.ts updateTask called with boardId:', req.params.boardId, 'taskId:', req.params.taskId, 'body:', req.body);
     try {
       if (req.headers.authorization !== 'Bearer testtoken') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -70,6 +77,7 @@ class TaskController {
       const task = await TaskRepo.updateTask(boardId, taskId, taskData);
       return res.json({ task });
     } catch (err) {
+      console.error('task.controller.ts updateTask error:', err);
       return res.status(500).json({ error: 'Internal server error', 
         details: String(err) });
     }
@@ -77,6 +85,7 @@ class TaskController {
 
   // Delete task for a board
   public deleteTask = async (req: Request, res: Response) => {
+    console.log('task.controller.ts deleteTask called with boardId:', req.params.boardId, 'taskId:', req.params.taskId);
     try {
       if (req.headers.authorization !== 'Bearer testtoken') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -86,6 +95,7 @@ class TaskController {
       await TaskRepo.deleteTask(boardId, taskId);
       return res.status(204).end();
     } catch (err) {
+      console.error('task.controller.ts deleteTask error:', err);
       return res.status(500).json({ error: 'Internal server error', 
         details: String(err) });
     }
