@@ -2,11 +2,13 @@
  * Environments variables declared here.
  */
 
+import { NodeEnvs } from './misc';
+
 /* eslint-disable node/no-process-env */
 
 
 export default {
-  NodeEnv: (process.env.NODE_ENV ?? ''),
+  NodeEnv: (process.env.NODE_ENV as NodeEnvs ?? ''),
   Port: (process.env.PORT ?? 0),
   CookieProps: {
     Key: 'ExpressGeneratorTs',
@@ -23,6 +25,6 @@ export default {
   },
   Jwt: {
     Secret: (process.env.JWT_SECRET ??  ''),
-    Exp: (process.env.COOKIE_EXP ?? ''), // exp at the same time as the cookie
+    Exp: (process.env.COOKIE_EXP && process.env.COOKIE_EXP !== '' ? process.env.COOKIE_EXP : '1h'), // exp at the same time as the cookie
   },
 } as const;

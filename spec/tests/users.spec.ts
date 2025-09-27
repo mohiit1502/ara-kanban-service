@@ -4,8 +4,8 @@ import insertUrlParams from 'inserturlparams';
 
 import app from '@src/server';
 
-import UserRepo from '@src/repos/UserRepo';
-import User from '@src/models/User';
+import UserRepo from '@src/repos/user.repo';
+import User from '@src/models/user.model';
 import HttpStatusCodes from '@src/constants/HttpStatusCodes';
 import { USER_NOT_FOUND_ERR } from '@src/services/UserService';
 import FullPaths from '@src/routes/constants/FullPaths';

@@ -2,7 +2,9 @@
 
 import jsonfile from 'jsonfile';
 
-import { IUser } from '@src/models/User';
+import { IUser } from '@src/models/user.model';
+import { IBoard } from '@src/models/board.model';
+import { ITask } from '@src/models/task.model';
 
 
 // **** Variables **** //
@@ -14,6 +16,8 @@ const DB_FILE_NAME = 'database.json';
 
 interface IDb {
   users: IUser[];
+  boards: IBoard[];
+  tasks: ITask[];
 }
 
 

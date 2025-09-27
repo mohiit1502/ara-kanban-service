@@ -1,11 +1,11 @@
-import UserRepo from '@src/repos/UserRepo';
+import UserRepo from '@src/repos/user.repo';
 
 import PwdUtil from '@src/util/PwdUtil';
 import { tick } from '@src/util/misc';
 
 import HttpStatusCodes from '@src/constants/HttpStatusCodes';
 import { RouteError } from '@src/other/classes';
-import { IUser } from '@src/models/User';
+import { IUser } from '@src/models/user.model';
 
 
 // **** Variables **** //
